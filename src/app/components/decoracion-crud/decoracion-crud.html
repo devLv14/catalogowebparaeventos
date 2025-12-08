@@ -1,0 +1,118 @@
+<div class="container mt-4">
+
+  <!-- Notificaciones -->
+  <app-notification [notifications]="notifications"></app-notification>
+
+  <!-- Título y búsqueda -->
+  <h2>CRUD de Decoración</h2>
+
+  <div class="d-flex justify-content-between align-items-center my-3">
+    <input type="text" class="form-control w-50" placeholder="Buscar por nombre..." (input)="search($event.target.value)" />
+    <button *ngIf="!formVisible" class="btn btn-primary" (click)="showForm()">Nueva Decoración</button>
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="formVisible" class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{{ editingId ? 'Editar Decoración' : 'Nueva Decoración' }}</h5>
+      <form [formGroup]="formDecoracion" (ngSubmit)="save()">
+
+        <!-- Campos del formulario con validación visual -->
+        <div class="mb-3">
+          <label class="form-label">Nombre</label>
+          <input type="text" formControlName="nombre" class="form-control" 
+                 [ngClass]="{'is-invalid': formDecoracion.get('nombre')?.invalid && formDecoracion.get('nombre')?.touched}" />
+          <div class="invalid-feedback">
+            Nombre mínimo 3 caracteres.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Tipo</label>
+          <input type="text" formControlName="tipo" class="form-control"
+                 [ngClass]="{'is-invalid': formDecoracion.get('tipo')?.invalid && formDecoracion.get('tipo')?.touched}" />
+          <div class="invalid-feedback">Este campo es obligatorio.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Precio</label>
+          <input type="number" formControlName="precioPorEvento" class="form-control"
+                 [ngClass]="{'is-invalid': formDecoracion.get('precioPorEvento')?.invalid && formDecoracion.get('precioPorEvento')?.touched}" />
+          <div class="invalid-feedback">Debe ser mayor a 0.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Proveedor</label>
+          <input type="text" formControlName="empresaProveedor" class="form-control"
+                 [ngClass]="{'is-invalid': formDecoracion.get('empresaProveedor')?.invalid && formDecoracion.get('empresaProveedor')?.touched}" />
+          <div class="invalid-feedback">Este campo es obligatorio.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Descripción</label>
+          <textarea formControlName="descripcion" class="form-control"
+                    [ngClass]="{'is-invalid': formDecoracion.get('descripcion')?.invalid && formDecoracion.get('descripcion')?.touched}"></textarea>
+          <div class="invalid-feedback">Mínimo 5 caracteres.</div>
+        </div>
+
+        <div class="form-check mb-3">
+          <input type="checkbox" formControlName="disponible" class="form-check-input" />
+          <label class="form-check-label">Disponible</label>
+        </div>
+
+        <!-- Botones -->
+        <div class="mt-4 d-flex justify-content-start gap-2">
+          <button type="submit" class="btn btn-success">
+  {{ editingId ? 'Actualizar' : 'Guardar' }}
+</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="hideForm()">Cancelar</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de registros -->
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered">
+      <thead class="table-light">
+        <tr>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Precio</th>
+          <th>Proveedor</th>
+          <th>Disponible</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let deco of decoraciones">
+          <td>{{ deco.nombre }}</td>
+          <td>{{ deco.tipo }}</td>
+          <td>${{ deco.precioPorEvento }}</td>
+          <td>{{ deco.empresaProveedor }}</td>
+          <td>{{ deco.disponible ? 'Sí' : 'No' }}</td>
+          <td>
+            <button class="btn btn-warning btn-sm me-1" (click)="editDecoracion(deco)">Editar</button>
+            <button class="btn btn-danger btn-sm" (click)="delete(deco)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cards debajo de la tabla -->
+  <div class="row row-cols-1 row-cols-md-3 g-4 mt-4">
+    <div class="col" *ngFor="let deco of decoraciones">
+      <app-card 
+        [titulo]="deco.nombre"
+        [descripcion]="'Tipo: ' + deco.tipo + ', Precio: $' + deco.precioPorEvento"
+        [imagen]="'assets/descarga.jpg'"
+        [mostrarBotones]="true"
+        (edit)="editDecoracion(deco)"
+        (delete)="delete(deco)"
+      ></app-card>
+    </div>
+  </div>
+
+</div>

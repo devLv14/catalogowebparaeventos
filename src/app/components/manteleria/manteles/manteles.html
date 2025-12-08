@@ -1,0 +1,232 @@
+
+<!-- POR QUÉ ELEGIRNOS -->
+<section class="container porque-section mt-5">
+  <h2 class="text-center mb-4 section-title">¿Por qué elegirnos?</h2>
+  <div class="row text-center">
+    <div class="col-md-4 mb-4">
+      <div class="porque-box">
+        <i class="bi bi-stars icono"></i>
+        <h5>Experiencia Profesional</h5>
+        <p>Más de 10 años decorando eventos con resultados impecables.</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="porque-box">
+        <i class="bi bi-award icono"></i>
+        <h5>Calidad Garantizada</h5>
+        <p>Materiales premium y servicios de alto nivel para tu evento.</p>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="porque-box">
+        <i class="bi bi-people icono"></i>
+        <h5>Atención Personalizada</h5>
+        <p>Te acompañamos desde la idea hasta el montaje final.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<app-notification [notifications]="notifications"></app-notification>
+
+<div class="manteleria-container">
+
+  <header class="page-header">
+    <h1>Gestión de Empresas de Mantelería</h1>
+    <p>Administra las empresas proveedoras de servicios de mantelería</p>
+  </header>
+
+  <!-- Formulario de Empresa -->
+  <section class="form-section">
+    <div class="card">
+      <div class="card-header">
+        <h2>{{ modoEdicion ? 'Editar Empresa' : 'Nueva Empresa' }}</h2>
+      </div>
+      <div class="card-body">
+        <form
+          [formGroup]="empresaForm"
+          (ngSubmit)="modoEdicion ? actualizarEmpresa() : crearEmpresa()"
+        >
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre">Nombre de la Empresa *</label>
+              <input
+                type="text"
+                id="nombre"
+                formControlName="nombre"
+                class="form-control"
+                placeholder="Ej: Manteles Elegantes S.A."
+              />
+              <div
+                class="error-message"
+                *ngIf="empresaForm.get('nombre')?.invalid && empresaForm.get('nombre')?.touched"
+              >
+                El nombre es requerido
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="contacto">Persona de Contacto *</label>
+              <input
+                type="text"
+                id="contacto"
+                formControlName="contacto"
+                class="form-control"
+                placeholder="Ej: Juan Pérez"
+              />
+              <div
+                class="error-message"
+                *ngIf="empresaForm.get('contacto')?.invalid && empresaForm.get('contacto')?.touched"
+              >
+                El contacto es requerido
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input
+                type="email"
+                id="email"
+                formControlName="email"
+                class="form-control"
+                placeholder="ejemplo@empresa.com"
+              />
+              <div
+                class="error-message"
+                *ngIf="empresaForm.get('email')?.invalid && empresaForm.get('email')?.touched"
+              >
+                Ingrese un email válido
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input
+                type="tel"
+                id="telefono"
+                formControlName="telefono"
+                class="form-control"
+                placeholder="+593 4 2345678"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ubicacion">Ubicación *</label>
+              <input
+                type="text"
+                id="ubicacion"
+                formControlName="ubicacion"
+                class="form-control"
+                placeholder="Ej: Norte de Guayaquil"
+              />
+              <div
+                class="error-message"
+                *ngIf="
+                  empresaForm.get('ubicacion')?.invalid && empresaForm.get('ubicacion')?.touched
+                "
+              >
+                La ubicación es requerida
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="tiempoEntrega">Tiempo de Entrega (horas) *</label>
+              <input
+                type="number"
+                id="tiempoEntrega"
+                formControlName="tiempoEntrega"
+                class="form-control"
+                min="1"
+              />
+              <div
+                class="error-message"
+                *ngIf="
+                  empresaForm.get('tiempoEntrega')?.invalid &&
+                  empresaForm.get('tiempoEntrega')?.touched
+                "
+              >
+                El tiempo debe ser mayor a 0
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="descripcion">Descripción</label>
+            <textarea
+              id="descripcion"
+              formControlName="descripcion"
+              class="form-control"
+              rows="3"
+              placeholder="Descripción de los servicios que ofrece la empresa..."
+            ></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" [disabled]="!empresaForm.valid">
+              {{ modoEdicion ? 'Actualizar' : 'Crear' }} Empresa
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="cancelarEdicion()"
+              *ngIf="modoEdicion"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista de Empresas -->
+  <section class="table-section">
+    <div class="card">
+      <div class="card-header">
+        <h2>Empresas Registradas</h2>
+        <span class="badge">{{ empresas.length }} empresas</span>
+      </div>
+      <div class="card-body">
+        <app-simple-table
+          [data]="empresas"
+          [columns]="tableColumns"
+          [loading]="loading"
+          [pageSize]="5"
+          [showPagination]="true"
+          [showActions]="true"
+          (action)="onTableAction($event)"
+        >
+        </app-simple-table>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- SECCIÓN DE MARCAS / REDES SOCIALES -->
+<section class="mt-5 text-center">
+  <h1 class="display-5 fw-bold mb-3">
+    Empresas que hacen de su pasión una hermosa profesión
+  </h1>
+  <p class="fw-bold">
+    Síguelos en sus redes sociales para conocer más de su trabajo.
+  </p>
+</section>
+
+<section class="marca-container marca-grande mt-4">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-12 col-sm-6 col-md-6 col-lg-4" *ngFor="let item of marcas">
+        <app-card 
+          [imagen]="item.imagen"
+          [url]="item.url"
+          [mostrarBotones]="false" >
+        </app-card>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,100 @@
+<div class="container my-4">
+  <h2 class="mb-3">Gestión de Salones</h2>
+
+  <!-- Estadísticas simples -->
+  <div class="mb-3">
+    <strong>Salones totales:</strong> {{ getEstadisticas().total }} |
+    <strong>Disponibles:</strong> {{ getEstadisticas().disponibles }} |
+    <strong>Capacidad total:</strong> {{ getEstadisticas().capacidadTotal }}
+  </div>
+
+<!-- Notificaciones -->
+<app-notification [notifications]="notifications"></app-notification>
+
+  <!-- FORMULARIO REACTIVO -->
+  <form
+    [formGroup]="salonForm"
+    (ngSubmit)="modoEdicion ? actualizarSalon() : crearSalon()"
+    class="card p-3 mb-4"
+  >
+    <h5 class="card-title">
+      {{ modoEdicion ? 'Editar salón' : 'Nuevo salón' }}
+    </h5>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label>Nombre</label>
+        <input type="text" class="form-control" formControlName="nombre" />
+        <small class="text-danger"
+          *ngIf="salonForm.get('nombre')?.invalid && salonForm.get('nombre')?.touched">
+          El nombre es obligatorio (mínimo 3 caracteres).
+        </small>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Descripción</label>
+        <input type="text" class="form-control" formControlName="descripcion" />
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Capacidad</label>
+        <input type="number" class="form-control" formControlName="capacidad" />
+        <small class="text-danger"
+          *ngIf="salonForm.get('capacidad')?.invalid && salonForm.get('capacidad')?.touched">
+          Capacidad mínima de 10 personas.
+        </small>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Precio por hora</label>
+        <input type="number" class="form-control" formControlName="precioHora" />
+        <small class="text-danger"
+          *ngIf="salonForm.get('precioHora')?.invalid && salonForm.get('precioHora')?.touched">
+          El precio debe ser mayor o igual a 0.
+        </small>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Ubicación</label>
+        <select class="form-select" formControlName="ubicacion">
+          <option value="">Seleccione...</option>
+          <option *ngFor="let u of ubicaciones" [value]="u">{{ u }}</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Tipo de evento</label>
+        <select class="form-select" formControlName="tipoEvento">
+          <option value="">Seleccione...</option>
+          <option *ngFor="let t of tiposEvento" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <div class="col-md-6 mb-3">
+        <label>Servicios incluidos</label>
+        <input type="text" class="form-control" formControlName="serviciosIncluidos" />
+      </div>
+
+      <div class="col-md-3 mb-3 form-check">
+        <input type="checkbox" class="form-check-input" formControlName="disponible" id="chkDisp" />
+        <label for="chkDisp" class="form-check-label">Disponible</label>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <button class="btn btn-primary me-2" type="submit">
+        {{ modoEdicion ? 'Actualizar' : 'Crear' }}
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="cancelarEdicion()" *ngIf="modoEdicion">
+        Cancelar
+      </button>
+    </div>
+  </form>
+
+  <!-- 2do componente reutilizable: TABLA -->
+  <app-simple-table
+    [data]="salones"
+    [columns]="tableColumns"
+    (action)="onTableAction($event)">
+  </app-simple-table>
+</div>

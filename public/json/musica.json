@@ -1,0 +1,31 @@
+{
+  "musica": [
+    {
+      "id": "1",
+      "nombre": "DJ ProSound",
+      "tipo": "DJ",
+      "precioPorHora": 150,
+      "generoMusical": "Electrónica, Reggaeton, Pop",
+      "equipoIncluido": "Tornamesas, Luces LED, Micrófono",
+      "disponible": true
+    },
+    {
+      "id": "2",
+      "nombre": "Banda Los Tropicales",
+      "tipo": "Banda en vivo",
+      "precioPorHora": 300,
+      "generoMusical": "Salsa, Cumbia, Merengue",
+      "equipoIncluido": "Instrumentos, Amplificación",
+      "disponible": true
+    },
+    {
+      "id": "3",
+      "nombre": "Mariachi Guadalajara",
+      "tipo": "Mariachi",
+      "precioPorHora": 200,
+      "generoMusical": "Rancheras, Corridos",
+      "equipoIncluido": "Trajes típicos, Instrumentos",
+      "disponible": false
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "decoracion": [
+    {
+      "nombre": "DecorArt Floral",
+      "tipo": "Floral",
+      "precioPorEvento": 120.5,
+      "empresaProveedor": "dscsdcd",
+      "descripcion": "Arreglos florales ewc y centros de mesa.qwdqwd",
+      "disponible": true,
+      "imagen": "",
+      "id": "1"
+    },
+    {
+      "id": "2",
+      "nombre": "GlobosFest",
+      "tipo": "Globos",
+      "precioPorEvento": 80,
+      "empresaProveedor": "GlobosFest S.A.",
+      "descripcion": "Decoración con globos temáticos para todo tipo de eventos.",
+      "disponible": true
+    }
+  ]
+}
