@@ -1,31 +1,29 @@
-export interface ServicioMantel {
+export interface ServicioManteleria {
   id: number;
-  nombre: string;
-  descripcion: string;
-  tipoTela: string;
-  color: string;
-  tamaño: string;
-  precioAlquiler: number;
-  precioVenta?: number;
-  stockDisponible: number;
-  estado: 'disponible' | 'agotado' | 'mantenimiento';
-  imagen?: string;
-  categoria: string;
+  nombre: string;                    // Text input
+  descripcion: string;               // Textarea
+  tipo: string;                      // SELECT
+  material: string;                  // SELECT
+  color: string;                     // Text input
+  medidas: string;                   // Text input
+  precioAlquiler: number;            // Number input
+  precioVenta?: number;              // Number input (opcional)
+  stockDisponible: number;           // Number input
+  disponible: boolean;               // CHECKBOX - ¡TIPO DIFERENTE!
+  categoria: string;                 // RADIO - ¡TIPO DIFERENTE!
+  imagenUrl?: string;                // Text input (URL)
+  fechaRegistro: Date;               // DATE PICKER - ¡TIPO DIFERENTE!
 }
 
-export interface EmpresaManteleria {
-  id: number;
-  nombre: string;
-  ruc: string;
-  contacto: string;
-  email: string;
-  telefono: string;
-  direccion: string;
-  ciudad: string;
-  descripcion?: string;
-  calificacion: number;
-  servicios: ServicioMantel[];
-  tiempoEntrega: number;
-  activo: boolean;
-  fechaRegistro: Date;
-}
+// Opciones para selects y radios
+export const TIPOS_MANTEL = [
+  'Rectangular', 'Redondo', 'Cuadrado', 'Ovalado', 'Corrido'
+];
+
+export const MATERIALES = [
+  'Algodón', 'Poliéster', 'Lino', 'Seda', 'Tul', 'Organza'
+];
+
+export const CATEGORIAS = [
+  'Boda', 'Corporativo', 'Social', 'Infantil', 'Gala'
+];

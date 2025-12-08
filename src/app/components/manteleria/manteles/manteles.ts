@@ -1,25 +1,18 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+import { Subscription } from 'rxjs';
+
+// Componentes reutilizables
 import { SimpleTableComponent } from '../../shared/data-table/data-table';
 import { NotificationComponent, Notification } from '../../shared/notification/notification';
 
-// Mover el servicio arriba del componente
-import { Injectable } from '@angular/core';
-import { Card } from '../../shared/card/card';
-@Injectable({
-  providedIn: 'root',
-})
-export class ManteleriaService {
-  // Aquí irían tus llamadas HTTP reales
-  constructor() {}
-}
+
+// Modelos y servicios
+import { ServicioManteleria, TIPOS_MANTEL, MATERIALES, CATEGORIAS } from '../../../models/manteleriamodel';
+import { ManteleriaService } from '../../../services/serv-manteleria-json';
+import { Card } from "../../shared/card/card";
 
 @Component({
   selector: 'app-manteleria',
@@ -28,208 +21,296 @@ export class ManteleriaService {
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    HttpClientModule,
     SimpleTableComponent,
-    Card,
     NotificationComponent,
-  ],
+    Card
+],
   templateUrl: './manteles.html',
-  styleUrls: ['./manteles.css'],
+  styleUrls: ['./manteles.css']
 })
-export class ManteleriaComponent implements OnInit {
-  marcas = [
-    { imagen: 'assets/marca1.jpg', url: 'https://www.facebook.com/tienda.de.arte.dc/' },
-    {
-      imagen: 'assets/marca2.jpg',
-      url: 'https://www.facebook.com/p/Dekorfactory-100077738053069/',
-    },
-    {
-      imagen: 'assets/marca3.jpg',
-      url: 'https://www.facebook.com/decoracioneseventosmm/?locale=es_LA',
-    },
-  ];
-
+export class ManteleriaComponent implements OnInit, OnDestroy {
   private manteleriaService = inject(ManteleriaService);
   private fb = inject(FormBuilder);
+  private subscription: Subscription = new Subscription();
 
   // Variables del componente
-  empresas: any[] = [];
-  empresaSeleccionada: any = null;
+  servicios: ServicioManteleria[] = [];
+  servicioSeleccionado: ServicioManteleria | null = null;
   modoEdicion: boolean = false;
   loading: boolean = false;
   notifications: Notification[] = [];
+  searchTerm: string = '';
+  marcas = [
+  { 
+    imagen: 'assets/marca1.jpg', 
+    url: 'https://www.facebook.com/tienda.de.arte.dc/' 
+  },
+  {
+    imagen: 'assets/marca2.jpg',
+    url: 'https://www.facebook.com/p/Dekorfactory-100077738053069/',
+  },
+  {
+    imagen: 'assets/marca3.jpg',
+    url: 'https://www.facebook.com/decoracioneseventosmm/?locale=es_LA',
+  },
+];
 
-  // Configuración simple para la tabla
+  // Opciones para formularios
+  tiposMantel = TIPOS_MANTEL;
+  materiales = MATERIALES;
+  categorias = CATEGORIAS;
+
+  // Configuración para la tabla reutilizable
   tableColumns = [
     { key: 'id', label: 'ID' },
     { key: 'nombre', label: 'Nombre' },
-    { key: 'contacto', label: 'Contacto' },
-    { key: 'email', label: 'Email' },
-    { key: 'telefono', label: 'Teléfono' },
-    { key: 'ubicacion', label: 'Ubicación' },
-    { key: 'calificacion', label: 'Rating' },
-    { key: 'activo', label: 'Estado' },
+    { key: 'tipo', label: 'Tipo' },
+    { key: 'material', label: 'Material' },
+    { key: 'color', label: 'Color' },
+    { key: 'precioAlquiler', label: 'Precio Alquiler', type: 'currency' },
+    { key: 'stockDisponible', label: 'Stock' },
+    { key: 'disponible', label: 'Disponible', type: 'boolean' },
+    { key: 'categoria', label: 'Categoría' }
   ];
 
-  // Formularios
-  empresaForm: FormGroup;
+  // Formulario reactivo con VALIDACIONES
+  servicioForm: FormGroup;
 
   constructor() {
-    // Inicializar formulario de empresa
-    this.empresaForm = this.fb.group({
-      nombre: ['', Validators.required],
-      descripcion: [''],
-      contacto: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      telefono: [''],
-      ubicacion: ['', Validators.required],
-      tiempoEntrega: [24, [Validators.required, Validators.min(1)]],
+    this.servicioForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.minLength(3)]],
+      descripcion: ['', [Validators.required, Validators.minLength(10)]],
+      tipo: ['', Validators.required],
+      material: ['', Validators.required],
+      color: ['', Validators.required],
+      medidas: ['', Validators.required],
+      precioAlquiler: [0, [Validators.required, Validators.min(0)]],
+      precioVenta: [0, [Validators.min(0)]],
+      stockDisponible: [0, [Validators.required, Validators.min(0)]],
+      disponible: [true],
+      categoria: ['', Validators.required],
+      imagenUrl: ['']
     });
   }
 
   ngOnInit(): void {
-    this.cargarEmpresas();
+    this.cargarServicios();
   }
 
-  // Cargar datos de ejemplo
-  cargarEmpresas(): void {
-    this.loading = true;
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
 
-    // Simular carga de API
-    setTimeout(() => {
-      this.empresas = [
-        {
-          id: 1,
-          nombre: 'Manteles Elegantes S.A.',
-          descripcion: 'Especialistas en mantelería fina para eventos corporativos y bodas de lujo',
-          contacto: 'Juan Pérez',
-          email: 'contacto@manteleselegantes.com',
-          telefono: '+593 4 2345678',
-          ubicacion: 'Norte de Guayaquil',
-          calificacion: 4.8,
-          activo: 'Activo',
-          tiempoEntrega: 24,
-          servicios: [
-            {
-              id: 1,
-              nombre: 'Mantel Blanco Premium',
-              tipoTela: 'Algodón',
-              color: 'Blanco',
-              tamaño: '180x300 cm',
-              precioAlquiler: 89.99,
-              stockDisponible: 50,
-            },
-          ],
-        },
-        {
-          id: 2,
-          nombre: 'Telas Finas Corporativo',
-          descripcion: 'Proveedores de mantelería empresarial y servicios de decoración',
-          contacto: 'María González',
-          email: 'ventas@telasfinas.com',
-          telefono: '+593 4 2345999',
-          ubicacion: 'Centro de Guayaquil',
-          calificacion: 4.5,
-          activo: 'Activo',
-          tiempoEntrega: 48,
-          servicios: [
-            {
-              id: 2,
-              nombre: 'Juego Completo Ejecutivo',
-              tipoTela: 'Polyster',
-              color: 'Negro',
-              tamaño: 'Juego Completo',
-              precioAlquiler: 129.99,
-              stockDisponible: 25,
-            },
-          ],
-        },
-      ];
-      this.loading = false;
-    }, 1500);
+  // Cargar servicios desde el servicio
+  cargarServicios(): void {
+    this.loading = true;
+    this.notifications = [];
+
+    const sub = this.manteleriaService.getServicios().subscribe({
+      next: (servicios) => {
+        this.servicios = servicios;
+        this.loading = false;
+        this.mostrarMensaje(`${servicios.length} servicios cargados`, 'info');
+      },
+      error: (error) => {
+        console.error('Error cargando servicios:', error);
+        this.loading = false;
+        this.mostrarMensaje('Error al cargar los servicios', 'error');
+      }
+    });
+
+    this.subscription.add(sub);
   }
 
   // CRUD Operations
-  crearEmpresa(): void {
-    if (this.empresaForm.valid) {
-      const nuevaEmpresa = {
-        id: this.empresas.length > 0 ? Math.max(...this.empresas.map((e) => e.id)) + 1 : 1,
-        ...this.empresaForm.value,
-        calificacion: 0,
-        activo: 'Activo',
-        servicios: [],
+  crearServicio(): void {
+    if (this.servicioForm.valid) {
+      const nuevoServicio: ServicioManteleria = {
+        id: 0, // El servicio asignará un ID
+        ...this.servicioForm.value,
+        fechaRegistro: new Date()
       };
 
-      this.empresas.push(nuevaEmpresa);
-      this.empresaForm.reset();
-      this.mostrarMensaje('Empresa creada exitosamente', 'success');
+      this.loading = true;
+      const sub = this.manteleriaService.crearServicio(nuevoServicio).subscribe({
+        next: (servicioCreado) => {
+          this.servicios.push(servicioCreado);
+          this.servicioForm.reset();
+          this.loading = false;
+          this.mostrarMensaje('Servicio creado exitosamente', 'success');
+        },
+        error: (error) => {
+          console.error('Error creando servicio:', error);
+          this.loading = false;
+          this.mostrarMensaje('Error al crear el servicio', 'error');
+        }
+      });
+
+      this.subscription.add(sub);
+    } else {
+      this.marcarFormularioComoSucio();
+      this.mostrarMensaje('Por favor, complete todos los campos requeridos correctamente', 'warning');
     }
   }
 
-  actualizarEmpresa(): void {
-    if (this.empresaForm.valid && this.empresaSeleccionada) {
-      const index = this.empresas.findIndex((e) => e.id === this.empresaSeleccionada.id);
-      if (index !== -1) {
-        this.empresas[index] = {
-          ...this.empresaSeleccionada,
-          ...this.empresaForm.value,
-        };
-        this.mostrarMensaje('Empresa actualizada exitosamente', 'info');
-        this.cancelarEdicion();
-      }
+  actualizarServicio(): void {
+    if (this.servicioForm.valid && this.servicioSeleccionado) {
+      const servicioActualizado: ServicioManteleria = {
+        ...this.servicioSeleccionado,
+        ...this.servicioForm.value
+      };
+
+      this.loading = true;
+      const sub = this.manteleriaService.actualizarServicio(servicioActualizado).subscribe({
+        next: (servicio) => {
+          const index = this.servicios.findIndex(s => s.id === servicio.id);
+          if (index !== -1) {
+            this.servicios[index] = servicio;
+          }
+          this.loading = false;
+          this.mostrarMensaje('Servicio actualizado exitosamente', 'success');
+          this.cancelarEdicion();
+        },
+        error: (error) => {
+          console.error('Error actualizando servicio:', error);
+          this.loading = false;
+          this.mostrarMensaje('Error al actualizar el servicio', 'error');
+        }
+      });
+
+      this.subscription.add(sub);
     }
   }
 
-  eliminarEmpresa(empresa: any): void {
-    if (confirm(`¿Está seguro de eliminar la empresa "${empresa.nombre}"?`)) {
-      this.empresas = this.empresas.filter((e) => e.id !== empresa.id);
-      this.mostrarMensaje('Empresa eliminada exitosamente', 'warning');
+  eliminarServicio(servicio: ServicioManteleria): void {
+    if (confirm(`¿Está seguro de eliminar el servicio "${servicio.nombre}"?`)) {
+      this.loading = true;
+      const sub = this.manteleriaService.eliminarServicio(servicio.id).subscribe({
+        next: (eliminado) => {
+          if (eliminado) {
+            this.servicios = this.servicios.filter(s => s.id !== servicio.id);
+            this.mostrarMensaje('Servicio eliminado exitosamente', 'warning');
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error eliminando servicio:', error);
+          this.loading = false;
+          this.mostrarMensaje('Error al eliminar el servicio', 'error');
+        }
+      });
+
+      this.subscription.add(sub);
+    }
+  }
+
+  // Buscar servicios
+  buscarServicios(): void {
+    if (this.searchTerm.trim()) {
+      this.loading = true;
+      const sub = this.manteleriaService.buscarServicios(this.searchTerm).subscribe({
+        next: (resultados) => {
+          this.servicios = resultados;
+          this.loading = false;
+          this.mostrarMensaje(`${resultados.length} resultados encontrados`, 'info');
+        },
+        error: (error) => {
+          console.error('Error buscando:', error);
+          this.loading = false;
+        }
+      });
+      this.subscription.add(sub);
+    } else {
+      this.cargarServicios();
     }
   }
 
   // Manejar acciones de la tabla
-  onTableAction(event: { action: string; item: any }): void {
-    const empresa = event.item;
+  onTableAction(event: { action: string; item: ServicioManteleria }): void {
+    const servicio = event.item;
 
     switch (event.action) {
       case 'edit':
-        this.seleccionarEmpresa(empresa);
+        this.seleccionarServicio(servicio);
         break;
       case 'delete':
-        this.eliminarEmpresa(empresa);
+        this.eliminarServicio(servicio);
+        break;
+      case 'view':
+        this.verServicio(servicio);
         break;
     }
   }
 
-  seleccionarEmpresa(empresa: any): void {
-    this.empresaSeleccionada = empresa;
+  seleccionarServicio(servicio: ServicioManteleria): void {
+    this.servicioSeleccionado = { ...servicio };
     this.modoEdicion = true;
-    this.empresaForm.patchValue(empresa);
+    this.servicioForm.patchValue(servicio);
+    this.scrollToForm();
+  }
+
+  verServicio(servicio: ServicioManteleria): void {
+    this.mostrarMensaje(`Viendo: ${servicio.nombre} - ${servicio.descripcion}`, 'info');
   }
 
   cancelarEdicion(): void {
-    this.empresaSeleccionada = null;
+    this.servicioSeleccionado = null;
     this.modoEdicion = false;
-    this.empresaForm.reset();
+    this.servicioForm.reset({
+      disponible: true,
+      precioAlquiler: 0,
+      precioVenta: 0,
+      stockDisponible: 0
+    });
+  }
+
+  // Utilidades
+  private marcarFormularioComoSucio(): void {
+    Object.keys(this.servicioForm.controls).forEach(key => {
+      const control = this.servicioForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  private scrollToForm(): void {
+    setTimeout(() => {
+      const formElement = document.querySelector('.form-section');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   }
 
   private mostrarMensaje(
     mensaje: string,
-    tipo: 'success' | 'error' | 'info' | 'warning' = 'success'
+    tipo: 'success' | 'error' | 'info' | 'warning' = 'success',
+    duracion: number = 4000
   ): void {
     const notification: Notification = {
       message: mensaje,
       type: tipo,
-      duration: 3000,
+      duration: duracion
     };
 
     this.notifications.push(notification);
 
-    // Auto-eliminar después de 3 segundos
+    // Auto-eliminar después de la duración
     setTimeout(() => {
       const index = this.notifications.indexOf(notification);
       if (index > -1) {
         this.notifications.splice(index, 1);
       }
-    }, 3000);
+    }, duracion);
   }
+
+  // Getters para validación en template
+  get nombre() { return this.servicioForm.get('nombre'); }
+  get descripcion() { return this.servicioForm.get('descripcion'); }
+  get tipo() { return this.servicioForm.get('tipo'); }
+  get material() { return this.servicioForm.get('material'); }
+  get color() { return this.servicioForm.get('color'); }
+  get precioAlquiler() { return this.servicioForm.get('precioAlquiler'); }
+  get stockDisponible() { return this.servicioForm.get('stockDisponible'); }
+  get categoria() { return this.servicioForm.get('categoria'); }
 }
