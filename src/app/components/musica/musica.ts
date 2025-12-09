@@ -160,9 +160,8 @@ export class MusicaComponent implements OnInit {
     );
   }
 
-
   servicioSeleccionadoParaVer: Musica | null = null;
-modalVerVisible = false; 
+  modalVerVisible = false; 
   // Manejar acciones de la tabla
   onTableAction(event: { action: string; item: any }): void {
     const musica = event.item;

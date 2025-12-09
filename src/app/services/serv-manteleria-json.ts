@@ -8,7 +8,7 @@ import { catchError, map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ManteleriaService {
-  private jsonUrl = 'assets/json/manteleria.json';
+  private jsonUrl =  "http://localhost:3000/manteleria";
   private servicios: ServicioManteleria[] = [];
 
   constructor(private http: HttpClient) {

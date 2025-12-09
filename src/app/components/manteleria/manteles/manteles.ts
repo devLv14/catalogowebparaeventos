@@ -8,7 +8,6 @@ import { Subscription } from 'rxjs';
 import { SimpleTableComponent } from '../../shared/data-table/data-table';
 import { NotificationComponent, Notification } from '../../shared/notification/notification';
 
-
 // Modelos y servicios
 import { ServicioManteleria, TIPOS_MANTEL, MATERIALES, CATEGORIAS } from '../../../models/manteleriamodel';
 import { ManteleriaService } from '../../../services/serv-manteleria-json';
@@ -63,14 +62,14 @@ export class ManteleriaComponent implements OnInit, OnDestroy {
 
   // Configuración para la tabla reutilizable
   tableColumns = [
-    { key: 'id', label: 'ID' },
+    { key: 'id', label: 'ID', width: '60px' },
     { key: 'nombre', label: 'Nombre' },
     { key: 'tipo', label: 'Tipo' },
     { key: 'material', label: 'Material' },
     { key: 'color', label: 'Color' },
-    { key: 'precioAlquiler', label: 'Precio Alquiler', type: 'currency' },
-    { key: 'stockDisponible', label: 'Stock' },
-    { key: 'disponible', label: 'Disponible', type: 'boolean' },
+    { key: 'precioAlquiler', label: 'Precio Alquiler', type: 'currency',format: (value: number) => `$${value.toFixed(2)}` },
+    { key: 'stockDisponible', label: 'Stock', type: 'badge',format: (value: number) => value > 10 ? 'bg-success' : value > 0 ? 'bg-warning' : 'bg-danger' },
+    { key: 'disponible', label: 'Estado', type: 'boolean' ,format: (value: boolean) => value ? 'Disponible' : 'No disponible'},
     { key: 'categoria', label: 'Categoría' }
   ];
 
@@ -225,7 +224,10 @@ export class ManteleriaComponent implements OnInit, OnDestroy {
       this.cargarServicios();
     }
   }
-
+  
+  servicioSeleccionadoParaVer: ServicioManteleria | null = null;
+  modalVerVisible: boolean = false;
+  
   // Manejar acciones de la tabla
   onTableAction(event: { action: string; item: ServicioManteleria }): void {
     const servicio = event.item;
@@ -238,9 +240,41 @@ export class ManteleriaComponent implements OnInit, OnDestroy {
         this.eliminarServicio(servicio);
         break;
       case 'view':
-        this.verServicio(servicio);
+        this.servicioSeleccionadoParaVer = servicio;
+        this.modalVerVisible = true;
         break;
     }
+  }
+  // Método para cerrar modal
+  cerrarModalVer(): void {
+  this.modalVerVisible = false;
+  this.servicioSeleccionadoParaVer = null;
+  }
+
+  // Métodos auxiliares para mostrar colores en el modal
+  getColorCode(colorName: string): string {
+  const colorMap: { [key: string]: string } = {
+    'Blanco': '#ffffff',
+    'Negro': '#000000',
+    'Rojo': '#dc3545',
+    'Azul': '#0d6efd',
+    'Verde': '#198754',
+    'Amarillo': '#ffc107',
+    'Morado': '#6f42c1',
+    'Rosa': '#d63384',
+    'Gris': '#6c757d',
+    'Beige': '#f5f5dc',
+    'Dorado': '#ffd700',
+    'Plateado': '#c0c0c0',
+    'Multicolor': 'linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)'
+  };
+  
+  return colorMap[colorName] || '#e9ecef';
+  }
+
+  getTextColor(colorName: string): string {
+  const lightColors = ['Blanco', 'Amarillo', 'Beige', 'Dorado'];
+  return lightColors.includes(colorName) ? '#000000' : '#ffffff';
   }
 
   seleccionarServicio(servicio: ServicioManteleria): void {

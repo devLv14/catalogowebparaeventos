@@ -7,7 +7,7 @@ import { Decoracion } from '../models/deco';
   providedIn: 'any',
 })
 export class ServDecoracionJson{
-  private decoracionUrl = "http://localhost:4200/decoracion";
+  private decoracionUrl = "http://localhost:3000/decoracion";
   
   
   constructor (private httpclient:HttpClient){

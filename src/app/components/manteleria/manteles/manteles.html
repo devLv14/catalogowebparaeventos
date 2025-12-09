@@ -349,7 +349,111 @@
       </div>
     </div>
   </section>
+  <!-- ========== MODAL DE VISUALIZACIÓN ========== -->
+<div *ngIf="modalVerVisible" class="custom-modal-backdrop">
+  <div class="custom-modal">
+    <div class="custom-modal-header">
+      <h5><i class="bi bi-eye-fill me-2"></i> Detalles del Servicio de Mantelería</h5>
+      <button type="button" class="btn-close" (click)="cerrarModalVer()"></button>
+    </div>
+
+    <div class="custom-modal-body" *ngIf="servicioSeleccionadoParaVer">
+      
+      <!-- Información principal -->
+      <div class="row">
+        <div class="col-md-6">
+          <p><strong><i class="bi bi-card-heading"></i> Nombre:</strong> {{ servicioSeleccionadoParaVer.nombre }}</p>
+          <p><strong><i class="bi bi-tag"></i> Tipo:</strong> {{ servicioSeleccionadoParaVer.tipo }}</p>
+          <p><strong><i class="bi bi-palette"></i> Color:</strong> 
+            <span class="badge" [ngStyle]="{'background-color': getColorCode(servicioSeleccionadoParaVer.color), color: getTextColor(servicioSeleccionadoParaVer.color)}">
+              {{ servicioSeleccionadoParaVer.color }}
+            </span>
+          </p>
+          <p><strong><i class="bi bi-rulers"></i> Medidas:</strong> {{ servicioSeleccionadoParaVer.medidas }}</p>
+        </div>
+        
+        <div class="col-md-6">
+          <p><strong><i class="bi bi-bag"></i> Material:</strong> {{ servicioSeleccionadoParaVer.material }}</p>
+          <p><strong><i class="bi bi-bookmark"></i> Categoría:</strong> 
+            <span class="badge bg-primary">{{ servicioSeleccionadoParaVer.categoria }}</span>
+          </p>
+          <p><strong><i class="bi bi-cash-stack"></i> Precio Alquiler:</strong> ${{ servicioSeleccionadoParaVer.precioAlquiler | number:'1.2-2' }}</p>
+          <p><strong><i class="bi bi-box"></i> Stock Disponible:</strong> {{ servicioSeleccionadoParaVer.stockDisponible }} unidades</p>
+        </div>
+      </div>
+
+      <!-- Precio de venta (si existe) -->
+      <div class="row mt-3" *ngIf="servicioSeleccionadoParaVer.precioVenta">
+        <div class="col-12">
+          <p><strong><i class="bi bi-cash"></i> Precio Venta:</strong> ${{ servicioSeleccionadoParaVer.precioVenta | number:'1.2-2' }}</p>
+        </div>
+      </div>
+
+      <!-- Estado y disponibilidad -->
+      <div class="row mt-3">
+        <div class="col-md-6">
+          <p><strong><i class="bi bi-check-circle"></i> Disponible:</strong> 
+            <span [ngClass]="{'text-success': servicioSeleccionadoParaVer.disponible, 'text-danger': !servicioSeleccionadoParaVer.disponible}">
+              {{ servicioSeleccionadoParaVer.disponible ? 'Sí' : 'No' }}
+            </span>
+          </p>
+        </div>
+        <div class="col-md-6">
+          <p><strong><i class="bi bi-calendar"></i> Fecha Registro:</strong> {{ servicioSeleccionadoParaVer.fechaRegistro | date:'dd/MM/yyyy' }}</p>
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div class="mt-3">
+        <p><strong><i class="bi bi-card-text"></i> Descripción:</strong></p>
+        <div class="card bg-light">
+          <div class="card-body">
+            {{ servicioSeleccionadoParaVer.descripcion }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Imagen (si existe) -->
+      <div class="mt-3" *ngIf="servicioSeleccionadoParaVer.imagenUrl">
+        <p><strong><i class="bi bi-image"></i> Imagen:</strong></p>
+        <div class="text-center">
+          <img 
+            [src]="servicioSeleccionadoParaVer.imagenUrl" 
+            [alt]="servicioSeleccionadoParaVer.nombre" 
+            class="img-thumbnail modal-imagen"
+            onerror="this.src='assets/placeholder-mantel.jpg'"
+          />
+        </div>
+      </div>
+
+    </div>
+
+    <div class="custom-modal-footer">
+      <button 
+        class="btn btn-warning me-2" 
+        type="button" 
+        (click)="seleccionarServicio(servicioSeleccionadoParaVer!); cerrarModalVer()"
+        *ngIf="servicioSeleccionadoParaVer"
+      >
+        <i class="bi bi-pencil"></i> Editar
+      </button>
+      <button 
+        class="btn btn-danger me-2" 
+        type="button" 
+        (click)="eliminarServicio(servicioSeleccionadoParaVer!); cerrarModalVer()"
+        *ngIf="servicioSeleccionadoParaVer"
+      >
+        <i class="bi bi-trash"></i> Eliminar
+      </button>
+      <button class="btn btn-outline-secondary" type="button" (click)="cerrarModalVer()">
+        <i class="bi bi-x-circle"></i> Cerrar
+      </button>
+    </div>
+  </div>
 </div>
+</div>
+
+
 
 <!-- SECCIÓN DE MARCAS / REDES SOCIALES -->
 <section class="mt-5 text-center">
@@ -367,8 +471,9 @@
       <div class="col-12 col-sm-6 col-md-6 col-lg-4" *ngFor="let item of marcas">
         
         <app-card 
+          [titulo]="'A todo mantel'"
           [imagen]="item.imagen"
-          [url]="item.url"
+          [url]="'www.atodomantel.com'"
           [mostrarBotones]="false" >
         </app-card>
         
